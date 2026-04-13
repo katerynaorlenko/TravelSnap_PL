@@ -1,130 +1,99 @@
-import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
-import { Colors } from '@/constants/Colors';
-import type { TripData } from '@/types/trip';
+import { Colors } from "@/constants/Colors";
 
 interface AddTripFormProps {
-  onAdd: (trip: TripData) => void;
+  title: string;
+  destination: string;
+  date: string;
+  rating: string;
+  onChangeTitle: (value: string) => void;
+  onChangeDestination: (value: string) => void;
+  onChangeDate: (value: string) => void;
+  onChangeRating: (value: string) => void;
+  onAdd: () => void;
 }
 
-const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
-
-const validate = (title: string, destination: string, date: string, rating: string): string | null => {
-  if (!title.trim() || !destination.trim() || !date.trim() || !rating.trim())
-    return 'All fields are required!';
-  if (!DATE_REGEX.test(date))
-    return 'Date must be in YYYY-MM-DD format!';
-  const ratingNum = Number(rating);
-  if (isNaN(ratingNum) || ratingNum < 1 || ratingNum > 5)
-    return 'Rating must be a number between 1 and 5!';
-  return null;
-};
-
-export default function AddTripForm({ onAdd }: AddTripFormProps) {
-  const [title, setTitle] = useState('');
-  const [destination, setDestination] = useState('');
-  const [date, setDate] = useState('');
-  const [rating, setRating] = useState('');
-
-  const handleSubmit = (): void => {
-    const error = validate(title, destination, date, rating);
-    if (error) {
-      Alert.alert('Error', error);
-      return;
-    }
-
-    onAdd({
-      title: title.trim(),
-      destination: destination.trim(),
-      date: date.trim(),
-      rating: Number(rating),
-    });
-
-    setTitle('');
-    setDestination('');
-    setDate('');
-    setRating('');
-  };
-
+export default function AddTripForm({
+  title,
+  destination,
+  date,
+  rating,
+  onChangeTitle,
+  onChangeDestination,
+  onChangeDate,
+  onChangeRating,
+  onAdd,
+}: AddTripFormProps) {
   return (
-    <View style={styles.form}>
-      <Text style={styles.formTitle}>Add new trip</Text>
-
+    <View style={styles.card}>
       <TextInput
         style={styles.input}
-        placeholder="Title"
+        placeholder="Tytuł podróży..."
         placeholderTextColor={Colors.textSecondary}
         value={title}
-        onChangeText={setTitle}
+        onChangeText={onChangeTitle}
       />
+
       <TextInput
         style={styles.input}
-        placeholder="Destination"
+        placeholder="Destynacja..."
         placeholderTextColor={Colors.textSecondary}
         value={destination}
-        onChangeText={setDestination}
+        onChangeText={onChangeDestination}
       />
+
       <TextInput
         style={styles.input}
-        placeholder="Date (YYYY-MM-DD)"
+        placeholder="Data (YYYY-MM)..."
         placeholderTextColor={Colors.textSecondary}
         value={date}
-        onChangeText={setDate}
+        onChangeText={onChangeDate}
       />
+
       <TextInput
         style={styles.input}
-        placeholder="Rating (1-5)"
+        placeholder="Ocena (1-5)..."
         placeholderTextColor={Colors.textSecondary}
         value={rating}
-        onChangeText={setRating}
+        onChangeText={onChangeRating}
         keyboardType="numeric"
       />
 
-      <Pressable style={styles.addButton} onPress={handleSubmit}>
-        <Text style={styles.addButtonText}>Add Trip</Text>
+      <Pressable style={styles.button} onPress={onAdd}>
+        <Text style={styles.buttonText}>Dodaj podróż</Text>
       </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  form: {
+  card: {
     backgroundColor: Colors.card,
-    padding: 16,
     borderRadius: 16,
-    marginBottom: 24,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  formTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    padding: 16,
+    marginHorizontal: 16,
     marginBottom: 16,
-    color: Colors.textPrimary,
+    gap: 12,
   },
   input: {
     backgroundColor: Colors.inputBg,
     borderWidth: 1,
     borderColor: Colors.inputBorder,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    fontSize: 16,
-    color: Colors.textPrimary,
-  },
-  addButton: {
-    backgroundColor: Colors.accent,
-    padding: 16,
     borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  addButtonText: {
+    padding: 14,
     color: Colors.textPrimary,
-    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: Colors.accent,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: Colors.textPrimary,
+    fontWeight: "bold",
     fontSize: 16,
   },
 });

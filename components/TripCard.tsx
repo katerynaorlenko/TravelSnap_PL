@@ -1,31 +1,46 @@
-import { StyleSheet, Text, View, Pressable } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from "@expo/vector-icons";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { Colors } from '@/constants/Colors';
-import type { TripData } from '@/types/trip';
+import RatingStars from "@/components/RatingStars";
+import { Colors } from "@/constants/Colors";
 
-import RatingStars from './RatingStars';
-
-interface TripCardProps extends TripData {
+interface TripCardProps {
+  title: string;
+  destination: string;
+  date: string;
+  rating: number;
   onDelete?: () => void;
 }
 
-export default function TripCard({ title, destination, date, rating, onDelete }: TripCardProps) {
+export default function TripCard({
+  title,
+  destination,
+  date,
+  rating,
+  onDelete,
+}: TripCardProps) {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
-        {onDelete && (
-          <Pressable onPress={onDelete} style={styles.deleteButton}>
-            <Ionicons name="close" size={16} color={Colors.accent} />
-          </Pressable>
-        )}
+        <Ionicons name="location" size={20} color={Colors.accent} />
+        <View style={styles.headerText}>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.destination}>{destination}</Text>
+        </View>
       </View>
-      <Text style={styles.meta}>
-        {destination} | {date}
-      </Text>
-      <View style={styles.separator} />
+
+      <View style={styles.dateRow}>
+        <Ionicons name="calendar" size={14} color={Colors.primary} />
+        <Text style={styles.dateText}>{date}</Text>
+      </View>
+
       <RatingStars rating={rating} />
+
+      {onDelete && (
+        <Pressable style={styles.deleteButton} onPress={onDelete}>
+          <Text style={styles.deleteText}>Usuń</Text>
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -33,41 +48,53 @@ export default function TripCard({ title, destination, date, rating, onDelete }:
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.card,
-    padding: 16,
     borderRadius: 16,
+    padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  headerText: {
+    marginLeft: 8,
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: Colors.textPrimary,
-    flex: 1,
   },
-  deleteButton: {
-    backgroundColor: Colors.accentTransparent,
-    padding: 6,
-    borderRadius: 12,
-    marginLeft: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  meta: {
+  destination: {
     fontSize: 13,
     color: Colors.textSecondary,
-    marginTop: 4,
+    marginTop: 2,
   },
-  separator: {
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    marginVertical: 12,
+  dateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  dateText: {
+    fontSize: 12,
+    color: Colors.primary,
+    marginLeft: 6,
+  },
+  deleteButton: {
+    alignSelf: "flex-start",
+    marginTop: 12,
+    backgroundColor: Colors.accentTransparent,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  deleteText: {
+    color: Colors.accent,
+    fontWeight: "bold",
   },
 });

@@ -1,6 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from "react-native";
 
-import { Colors } from '@/constants/Colors';
+import { Colors } from "@/constants/Colors";
 
 interface ScreenHeaderProps {
   tripCount: number;
@@ -13,6 +13,7 @@ export default function ScreenHeader({ tripCount }: ScreenHeaderProps) {
         <Text style={styles.title}>TravelSnap</Text>
         <Text style={styles.subtitle}>Twój dziennik podróży</Text>
       </View>
+
       <View style={styles.badge}>
         <Text style={styles.badgeText}>{tripCount}</Text>
       </View>
@@ -23,19 +24,19 @@ export default function ScreenHeader({ tripCount }: ScreenHeaderProps) {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.background,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingTop: 20,
     paddingHorizontal: 16,
     paddingBottom: 12,
   },
   textContainer: {
-    flexDirection: 'column',
+    flexDirection: "column",
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: Colors.textPrimary,
   },
   subtitle: {
@@ -48,12 +49,12 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 18,
     backgroundColor: Colors.accent,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   badgeText: {
     color: Colors.textPrimary,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 16,
   },
 });
