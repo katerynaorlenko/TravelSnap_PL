@@ -1,6 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
-import { Pressable, ScrollView, StyleSheet } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import ScreenHeader from "@/components/ScreenHeader";
@@ -11,8 +17,16 @@ import { Colors } from "@/constants/Colors";
 import { useTrips } from "@/context/TripContext";
 
 export default function HomeScreen() {
-  const { trips, deleteTrip } = useTrips();
+  const { trips, deleteTrip, loading } = useTrips();
   const router = useRouter();
+
+  if (loading) {
+    return (
+      <View style={styles.loadingScreen}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -76,6 +90,12 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
     paddingBottom: 96,
+  },
+  loadingScreen: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    justifyContent: "center",
+    alignItems: "center",
   },
   fab: {
     position: "absolute",

@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Pressable,
   StyleSheet,
@@ -16,12 +17,28 @@ import { useFavorites } from "@/hooks/useFavorites";
 
 export default function TripDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { trips } = useTrips();
+  const { trips, deleteTrip } = useTrips();
   const router = useRouter();
   const { isLoading, isFavorite, toggleFavorite } = useFavorites();
 
   const trip = trips.find((t) => t.id === id);
   const favorited = isFavorite(id);
+
+  const handleDelete = () => {
+    Alert.alert("Usuń podróż", "Tej operacji nie można cofnąć. Czy na pewno?", [
+      { text: "Anuluj", style: "cancel" },
+      {
+        text: "Usuń",
+        style: "destructive",
+        onPress: async () => {
+          if (id) {
+            await deleteTrip(id);
+            router.back();
+          }
+        },
+      },
+    ]);
+  };
 
   if (!trip) {
     return (
@@ -91,8 +108,17 @@ export default function TripDetailScreen() {
           <RatingStars rating={rating} />
         </View>
 
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Back to list</Text>
+        <Pressable
+          style={styles.editButton}
+          onPress={() => router.push(`/trip/edit/${id}`)}
+        >
+          <Ionicons name="create-outline" size={18} color={Colors.background} />
+          <Text style={styles.editButtonText}>Edit trip</Text>
+        </Pressable>
+
+        <Pressable style={styles.deleteButton} onPress={handleDelete}>
+          <Ionicons name="trash-outline" size={18} color={Colors.textPrimary} />
+          <Text style={styles.deleteButtonText}>Usuń podróż</Text>
         </Pressable>
       </View>
     </>
@@ -148,14 +174,32 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 32,
   },
-  backButton: {
+  editButton: {
     backgroundColor: Colors.primary,
     borderRadius: 8,
     padding: 12,
     alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 12,
   },
-  backButtonText: {
+  editButtonText: {
     color: Colors.background,
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  deleteButton: {
+    backgroundColor: Colors.accent,
+    borderRadius: 8,
+    padding: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+  },
+  deleteButtonText: {
+    color: Colors.textPrimary,
     fontWeight: "bold",
     fontSize: 16,
   },
@@ -167,5 +211,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textSecondary,
     marginBottom: 24,
+  },
+  backButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    padding: 12,
+    alignItems: "center",
+  },
+  backButtonText: {
+    color: Colors.background,
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });

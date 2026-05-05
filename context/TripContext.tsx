@@ -1,43 +1,87 @@
-import { createContext, useContext, useState } from 'react';
-import type { ReactNode } from 'react';
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
-import type { Trip, TripData } from '@/types/trip';
+import type { Trip, TripData } from "@/types/trip";
+import { loadTrips, saveTrips } from "@/utils/tripStorage";
 
-interface TripContextValue {
+interface TripContextType {
   trips: Trip[];
-  addTrip: (data: TripData) => void;
-  deleteTrip: (id: string) => void;
+  loading: boolean;
+  addTrip: (data: TripData) => Promise<void>;
+  deleteTrip: (id: string) => Promise<void>;
+  updateTrip: (id: string, data: Partial<TripData>) => Promise<void>;
 }
 
-const TripContext = createContext<TripContextValue | null>(null);
+const TripContext = createContext<TripContextType | null>(null);
 
-interface TripProviderProps {
-  children: ReactNode;
-}
-
-export function TripProvider({ children }: TripProviderProps) {
+export function TripProvider({ children }: { children: ReactNode }) {
   const [trips, setTrips] = useState<Trip[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const addTrip = (data: TripData): void => {
-    const newTrip: Trip = { id: Date.now().toString(), ...data };
-    setTrips((current) => [newTrip, ...current]);
+  useEffect(() => {
+    const loadSavedTrips = async () => {
+      const savedTrips = await loadTrips();
+      setTrips(savedTrips);
+      setLoading(false);
+    };
+
+    loadSavedTrips();
+  }, []);
+
+  const addTrip = async (data: TripData) => {
+    const newTrip: Trip = {
+      ...data,
+      id: Date.now().toString(),
+    };
+
+    const updatedTrips = [...trips, newTrip];
+
+    setTrips(updatedTrips);
+    await saveTrips(updatedTrips);
   };
 
-  const deleteTrip = (id: string): void => {
-    setTrips((current) => current.filter((trip) => trip.id !== id));
+  const deleteTrip = async (id: string) => {
+    const updatedTrips = trips.filter((trip) => trip.id !== id);
+
+    setTrips(updatedTrips);
+    await saveTrips(updatedTrips);
+  };
+
+  const updateTrip = async (id: string, data: Partial<TripData>) => {
+    const updatedTrips = trips.map((trip) =>
+      trip.id === id ? { ...trip, ...data } : trip,
+    );
+
+    setTrips(updatedTrips);
+    await saveTrips(updatedTrips);
   };
 
   return (
-    <TripContext.Provider value={{ trips, addTrip, deleteTrip }}>
+    <TripContext.Provider
+      value={{
+        trips,
+        loading,
+        addTrip,
+        deleteTrip,
+        updateTrip,
+      }}
+    >
       {children}
     </TripContext.Provider>
   );
 }
 
-export function useTrips(): TripContextValue {
+export function useTrips() {
   const context = useContext(TripContext);
+
   if (!context) {
-    throw new Error('useTrips must be used within a TripProvider');
+    throw new Error("useTrips must be used inside TripProvider");
   }
+
   return context;
 }
