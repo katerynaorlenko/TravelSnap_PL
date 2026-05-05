@@ -3,6 +3,7 @@ export interface TripData {
   destination: string;
   date: string;
   rating: number;
+  imageUri?: string;
 }
 
 export interface Trip extends TripData {
