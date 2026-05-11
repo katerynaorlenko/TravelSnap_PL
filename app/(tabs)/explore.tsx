@@ -1,17 +1,35 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { FlatList, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Colors } from '@/constants/Colors';
+import DestinationCard from "@/components/DestinationCard";
+import { Colors } from "@/constants/Colors";
+
+const POPULAR_DESTINATIONS = [
+  "Paris",
+  "Rome",
+  "Barcelona",
+  "Tokyo",
+  "New York",
+  "London",
+];
 
 export default function ExploreScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.centered}>
-        <Ionicons name="compass" size={64} color={Colors.primary} />
-        <Text style={styles.title}>Discover new places</Text>
-        <Text style={styles.subtitle}>Coming soon...</Text>
-      </View>
+      <FlatList
+        data={POPULAR_DESTINATIONS}
+        keyExtractor={(item) => item}
+        contentContainerStyle={styles.content}
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <Text style={styles.title}>Explore destinations</Text>
+            <Text style={styles.subtitle}>
+              Discover popular travel ideas with live photos from Unsplash.
+            </Text>
+          </View>
+        }
+        renderItem={({ item }) => <DestinationCard city={item} />}
+      />
     </SafeAreaView>
   );
 }
@@ -21,20 +39,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
+  content: {
+    padding: 16,
+    paddingBottom: 96,
+  },
+  header: {
+    marginBottom: 16,
   },
   title: {
-    fontSize: 22,
-    fontWeight: 'bold',
     color: Colors.textPrimary,
-    marginTop: 8,
+    fontSize: 26,
+    fontWeight: "bold",
   },
   subtitle: {
-    fontSize: 15,
     color: Colors.textSecondary,
+    fontSize: 14,
+    marginTop: 6,
+    lineHeight: 20,
   },
 });
