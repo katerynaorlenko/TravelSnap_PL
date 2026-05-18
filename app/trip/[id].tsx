@@ -5,6 +5,7 @@ import {
   Alert,
   Image,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -54,7 +55,7 @@ export default function TripDetailScreen() {
     );
   }
 
-  const { title, destination, date, rating, imageUri } = trip;
+  const { title, destination, date, rating, imageUri, category, notes } = trip;
 
   return (
     <>
@@ -82,7 +83,11 @@ export default function TripDetailScreen() {
         }}
       />
 
-      <View style={styles.screen}>
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         {imageUri ? (
           <Image source={{ uri: imageUri }} style={styles.heroImage} />
         ) : (
@@ -93,6 +98,12 @@ export default function TripDetailScreen() {
         )}
 
         <Text style={styles.tripTitle}>{title}</Text>
+
+        {category && (
+          <View style={styles.categoryBadge}>
+            <Text style={styles.categoryText}>{category}</Text>
+          </View>
+        )}
 
         <View style={styles.metaRow}>
           <Ionicons name="location" size={16} color={Colors.textSecondary} />
@@ -108,6 +119,13 @@ export default function TripDetailScreen() {
           <RatingStars rating={rating} />
         </View>
 
+        {notes ? (
+          <View style={styles.notesBox}>
+            <Text style={styles.notesTitle}>Travel notes</Text>
+            <Text style={styles.notesText}>{notes}</Text>
+          </View>
+        ) : null}
+
         <Pressable
           style={styles.editButton}
           onPress={() => router.push(`/trip/edit/${id}`)}
@@ -120,7 +138,7 @@ export default function TripDetailScreen() {
           <Ionicons name="trash-outline" size={18} color={Colors.textPrimary} />
           <Text style={styles.deleteButtonText}>Usuń podróż</Text>
         </Pressable>
-      </View>
+      </ScrollView>
     </>
   );
 }
@@ -129,7 +147,10 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  content: {
     padding: 24,
+    paddingBottom: 40,
   },
   heroImage: {
     width: "100%",
@@ -155,7 +176,20 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: Colors.textPrimary,
+    marginBottom: 10,
+  },
+  categoryBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: Colors.primary,
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     marginBottom: 16,
+  },
+  categoryText: {
+    color: Colors.background,
+    fontSize: 13,
+    fontWeight: "700",
   },
   metaRow: {
     flexDirection: "row",
@@ -172,7 +206,24 @@ const styles = StyleSheet.create({
   },
   starsRow: {
     marginTop: 16,
-    marginBottom: 32,
+    marginBottom: 20,
+  },
+  notesBox: {
+    backgroundColor: Colors.card,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 20,
+  },
+  notesTitle: {
+    color: Colors.textPrimary,
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 6,
+  },
+  notesText: {
+    color: Colors.textSecondary,
+    fontSize: 14,
+    lineHeight: 20,
   },
   editButton: {
     backgroundColor: Colors.primary,

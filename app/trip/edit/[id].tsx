@@ -1,18 +1,18 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import {
-    Alert,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 
 import { Colors } from "@/constants/Colors";
 import { useTrips } from "@/context/TripContext";
-
-const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+import { tripSchema, type TripFormData } from "@/types/tripSchema";
 
 export default function EditTripScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -21,62 +21,37 @@ export default function EditTripScreen() {
 
   const trip = trips.find((item) => item.id === id);
 
-  const [title, setTitle] = useState("");
-  const [destination, setDestination] = useState("");
-  const [date, setDate] = useState("");
-  const [rating, setRating] = useState("");
-
-  useEffect(() => {
-    if (trip) {
-      setTitle(trip.title);
-      setDestination(trip.destination);
-      setDate(trip.date);
-      setRating(String(trip.rating));
-    }
-  }, [trip]);
-
-  const handleSave = async () => {
-    if (
-      !title.trim() ||
-      !destination.trim() ||
-      !date.trim() ||
-      !rating.trim()
-    ) {
-      Alert.alert("Błąd", "Wszystkie pola są wymagane.");
-      return;
-    }
-
-    if (!DATE_REGEX.test(date)) {
-      Alert.alert("Błąd", "Data musi mieć format YYYY-MM-DD.");
-      return;
-    }
-
-    const numericRating = Number(rating);
-
-    if (Number.isNaN(numericRating) || numericRating < 1 || numericRating > 5) {
-      Alert.alert("Błąd", "Ocena musi być liczbą od 1 do 5.");
-      return;
-    }
-
-    if (id) {
-      await updateTrip(id, {
-        title: title.trim(),
-        destination: destination.trim(),
-        date: date.trim(),
-        rating: numericRating,
-      });
-
-      router.back();
-    }
-  };
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<TripFormData>({
+    resolver: zodResolver(tripSchema),
+    defaultValues: {
+      title: trip?.title ?? "",
+      destination: trip?.destination ?? "",
+      date: trip?.date ?? "",
+      rating: trip?.rating ?? 1,
+      imageUri: trip?.imageUri,
+    },
+    mode: "onBlur",
+  });
 
   if (!trip) {
     return (
-      <View style={styles.screen}>
-        <Text style={styles.title}>Trip not found</Text>
-      </View>
+      <>
+        <Stack.Screen options={{ title: "Trip not found" }} />
+        <View style={styles.screen}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
+      </>
     );
   }
+
+  const onSubmit = async (data: TripFormData) => {
+    await updateTrip(id, data);
+    router.back();
+  };
 
   return (
     <>
@@ -85,41 +60,100 @@ export default function EditTripScreen() {
       <View style={styles.screen}>
         <Text style={styles.title}>Edit trip</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Title"
-          placeholderTextColor={Colors.textSecondary}
-          value={title}
-          onChangeText={setTitle}
+        <Controller
+          control={control}
+          name="title"
+          render={({ field: { onChange, onBlur, value }, fieldState }) => (
+            <View style={styles.field}>
+              <TextInput
+                style={[styles.input, fieldState.error && styles.inputError]}
+                placeholder="Title"
+                placeholderTextColor={Colors.textSecondary}
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+              />
+              {fieldState.error && (
+                <Text style={styles.errorText}>{fieldState.error.message}</Text>
+              )}
+            </View>
+          )}
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Destination"
-          placeholderTextColor={Colors.textSecondary}
-          value={destination}
-          onChangeText={setDestination}
+        <Controller
+          control={control}
+          name="destination"
+          render={({ field: { onChange, onBlur, value }, fieldState }) => (
+            <View style={styles.field}>
+              <TextInput
+                style={[styles.input, fieldState.error && styles.inputError]}
+                placeholder="Destination"
+                placeholderTextColor={Colors.textSecondary}
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+              />
+              {fieldState.error && (
+                <Text style={styles.errorText}>{fieldState.error.message}</Text>
+              )}
+            </View>
+          )}
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Date (YYYY-MM-DD)"
-          placeholderTextColor={Colors.textSecondary}
-          value={date}
-          onChangeText={setDate}
+        <Controller
+          control={control}
+          name="date"
+          render={({ field: { onChange, onBlur, value }, fieldState }) => (
+            <View style={styles.field}>
+              <TextInput
+                style={[styles.input, fieldState.error && styles.inputError]}
+                placeholder="Date (YYYY-MM-DD)"
+                placeholderTextColor={Colors.textSecondary}
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+              />
+              {fieldState.error && (
+                <Text style={styles.errorText}>{fieldState.error.message}</Text>
+              )}
+            </View>
+          )}
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Rating (1-5)"
-          placeholderTextColor={Colors.textSecondary}
-          value={rating}
-          onChangeText={setRating}
-          keyboardType="numeric"
+        <Controller
+          control={control}
+          name="rating"
+          render={({ field: { onChange, onBlur, value }, fieldState }) => (
+            <View style={styles.field}>
+              <TextInput
+                style={[styles.input, fieldState.error && styles.inputError]}
+                placeholder="Rating (1-5)"
+                placeholderTextColor={Colors.textSecondary}
+                value={String(value)}
+                onChangeText={(text) => {
+                  const cleaned = text.replace(/[^1-5]/g, "");
+                  onChange(cleaned ? Number(cleaned) : 0);
+                }}
+                onBlur={onBlur}
+                keyboardType="numeric"
+              />
+              {fieldState.error && (
+                <Text style={styles.errorText}>{fieldState.error.message}</Text>
+              )}
+            </View>
+          )}
         />
 
-        <Pressable style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>Zapisz zmiany</Text>
+        <Pressable
+          style={[styles.saveButton, isSubmitting && styles.saveButtonDisabled]}
+          onPress={handleSubmit(onSubmit)}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color={Colors.background} />
+          ) : (
+            <Text style={styles.saveButtonText}>Zapisz zmiany</Text>
+          )}
         </Pressable>
       </View>
     </>
@@ -138,15 +172,26 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
   },
+  field: {
+    marginBottom: 12,
+  },
   input: {
     backgroundColor: Colors.inputBg,
     borderWidth: 1,
     borderColor: Colors.inputBorder,
     borderRadius: 8,
     padding: 12,
-    marginBottom: 12,
     fontSize: 16,
     color: Colors.textPrimary,
+  },
+  inputError: {
+    borderColor: Colors.accent,
+    borderWidth: 1.5,
+  },
+  errorText: {
+    color: Colors.accent,
+    fontSize: 12,
+    marginTop: 4,
   },
   saveButton: {
     backgroundColor: Colors.primary,
@@ -154,6 +199,9 @@ const styles = StyleSheet.create({
     padding: 14,
     alignItems: "center",
     marginTop: 8,
+  },
+  saveButtonDisabled: {
+    opacity: 0.5,
   },
   saveButtonText: {
     color: Colors.background,

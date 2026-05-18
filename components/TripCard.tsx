@@ -17,6 +17,8 @@ export default function TripCard({
   date,
   rating,
   imageUri,
+  category,
+  notes,
   onDelete,
 }: TripCardProps) {
   const handleDeletePress = (event: GestureResponderEvent): void => {
@@ -41,9 +43,17 @@ export default function TripCard({
           )}
         </View>
 
+        {category && (
+          <View style={styles.categoryBadge}>
+            <Text style={styles.categoryText}>{category}</Text>
+          </View>
+        )}
+
         <Text style={styles.meta}>
           {destination} | {date}
         </Text>
+
+        {notes ? <Text style={styles.notes}>{notes}</Text> : null}
 
         <View style={styles.separator} />
 
@@ -90,10 +100,29 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  categoryBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: Colors.primary,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginTop: 8,
+  },
+  categoryText: {
+    color: Colors.background,
+    fontSize: 12,
+    fontWeight: "700",
+  },
   meta: {
     fontSize: 13,
     color: Colors.textSecondary,
-    marginTop: 4,
+    marginTop: 8,
+  },
+  notes: {
+    color: Colors.textSecondary,
+    fontSize: 13,
+    marginTop: 8,
+    lineHeight: 18,
   },
   separator: {
     borderBottomWidth: 1,

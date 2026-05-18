@@ -1,6 +1,8 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import * as ImagePicker from "expo-image-picker";
-import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import {
+  ActivityIndicator,
   Alert,
   Image,
   Pressable,
@@ -12,43 +14,40 @@ import {
 
 import { Colors } from "@/constants/Colors";
 import type { TripData } from "@/types/trip";
+import {
+  tripCategories,
+  tripSchema,
+  type TripFormData,
+} from "@/types/tripSchema";
 import { saveImage } from "@/utils/saveImage";
 
 interface AddTripFormProps {
-  onAdd: (trip: TripData) => void;
+  onAdd: (trip: TripData) => void | Promise<void>;
 }
 
-const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
-
-const validate = (
-  title: string,
-  destination: string,
-  date: string,
-  rating: string,
-): string | null => {
-  if (!title.trim() || !destination.trim() || !date.trim() || !rating.trim()) {
-    return "All fields are required!";
-  }
-
-  if (!DATE_REGEX.test(date)) {
-    return "Date must be in YYYY-MM-DD format!";
-  }
-
-  const ratingNum = Number(rating);
-
-  if (Number.isNaN(ratingNum) || ratingNum < 1 || ratingNum > 5) {
-    return "Rating must be a number between 1 and 5!";
-  }
-
-  return null;
-};
-
 export default function AddTripForm({ onAdd }: AddTripFormProps) {
-  const [title, setTitle] = useState("");
-  const [destination, setDestination] = useState("");
-  const [date, setDate] = useState("");
-  const [rating, setRating] = useState("");
-  const [imageUri, setImageUri] = useState<string>();
+  const {
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { isSubmitting },
+  } = useForm<TripFormData>({
+    resolver: zodResolver(tripSchema),
+    defaultValues: {
+      title: "",
+      destination: "",
+      date: "",
+      rating: 3,
+      imageUri: undefined,
+      notes: "",
+      category: "City",
+    },
+    mode: "onBlur",
+  });
+
+  const imageUri = watch("imageUri");
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -60,7 +59,7 @@ export default function AddTripForm({ onAdd }: AddTripFormProps) {
 
     if (!result.canceled) {
       const savedUri = await saveImage(result.assets[0].uri);
-      setImageUri(savedUri);
+      setValue("imageUri", savedUri, { shouldDirty: true });
     }
   };
 
@@ -79,7 +78,7 @@ export default function AddTripForm({ onAdd }: AddTripFormProps) {
 
     if (!result.canceled) {
       const savedUri = await saveImage(result.assets[0].uri);
-      setImageUri(savedUri);
+      setValue("imageUri", savedUri, { shouldDirty: true });
     }
   };
 
@@ -91,27 +90,9 @@ export default function AddTripForm({ onAdd }: AddTripFormProps) {
     ]);
   };
 
-  const handleSubmit = (): void => {
-    const error = validate(title, destination, date, rating);
-
-    if (error) {
-      Alert.alert("Error", error);
-      return;
-    }
-
-    onAdd({
-      title: title.trim(),
-      destination: destination.trim(),
-      date: date.trim(),
-      rating: Number(rating),
-      imageUri: imageUri || undefined,
-    });
-
-    setTitle("");
-    setDestination("");
-    setDate("");
-    setRating("");
-    setImageUri(undefined);
+  const onSubmit = async (data: TripFormData) => {
+    await onAdd(data);
+    reset();
   };
 
   return (
@@ -132,41 +113,158 @@ export default function AddTripForm({ onAdd }: AddTripFormProps) {
         </Pressable>
       )}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Title"
-        placeholderTextColor={Colors.textSecondary}
-        value={title}
-        onChangeText={setTitle}
+      <Controller
+        control={control}
+        name="title"
+        render={({ field: { onChange, onBlur, value }, fieldState }) => (
+          <View style={styles.field}>
+            <Text style={styles.label}>Tytuł</Text>
+            <TextInput
+              style={[styles.input, fieldState.error && styles.inputError]}
+              placeholder="Title"
+              placeholderTextColor={Colors.textSecondary}
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+            />
+            {fieldState.error && (
+              <Text style={styles.errorText}>{fieldState.error.message}</Text>
+            )}
+          </View>
+        )}
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Destination"
-        placeholderTextColor={Colors.textSecondary}
-        value={destination}
-        onChangeText={setDestination}
+      <Controller
+        control={control}
+        name="destination"
+        render={({ field: { onChange, onBlur, value }, fieldState }) => (
+          <View style={styles.field}>
+            <Text style={styles.label}>Cel podróży</Text>
+            <TextInput
+              style={[styles.input, fieldState.error && styles.inputError]}
+              placeholder="Destination"
+              placeholderTextColor={Colors.textSecondary}
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+            />
+            {fieldState.error && (
+              <Text style={styles.errorText}>{fieldState.error.message}</Text>
+            )}
+          </View>
+        )}
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Date (YYYY-MM-DD)"
-        placeholderTextColor={Colors.textSecondary}
-        value={date}
-        onChangeText={setDate}
+      <Controller
+        control={control}
+        name="date"
+        render={({ field: { onChange, onBlur, value }, fieldState }) => (
+          <View style={styles.field}>
+            <Text style={styles.label}>Data</Text>
+            <TextInput
+              style={[styles.input, fieldState.error && styles.inputError]}
+              placeholder="Date (YYYY-MM-DD)"
+              placeholderTextColor={Colors.textSecondary}
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+            />
+            {fieldState.error && (
+              <Text style={styles.errorText}>{fieldState.error.message}</Text>
+            )}
+          </View>
+        )}
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Rating (1-5)"
-        placeholderTextColor={Colors.textSecondary}
-        value={rating}
-        onChangeText={setRating}
-        keyboardType="numeric"
+      <Controller
+        control={control}
+        name="rating"
+        render={({ field: { onChange, onBlur, value }, fieldState }) => (
+          <View style={styles.field}>
+            <Text style={styles.label}>Ocena</Text>
+            <TextInput
+              style={[styles.input, fieldState.error && styles.inputError]}
+              placeholder="Rating (1-5)"
+              placeholderTextColor={Colors.textSecondary}
+              value={String(value)}
+              onChangeText={(text) => onChange(Number(text))}
+              onBlur={onBlur}
+              keyboardType="numeric"
+            />
+            {fieldState.error && (
+              <Text style={styles.errorText}>{fieldState.error.message}</Text>
+            )}
+          </View>
+        )}
       />
 
-      <Pressable style={styles.addButton} onPress={handleSubmit}>
-        <Text style={styles.addButtonText}>Add Trip</Text>
+      <Controller
+        control={control}
+        name="category"
+        render={({ field: { value, onChange } }) => (
+          <View style={styles.field}>
+            <Text style={styles.label}>Category</Text>
+            <View style={styles.categoryRow}>
+              {tripCategories.map((category) => (
+                <Pressable
+                  key={category}
+                  style={[
+                    styles.categoryChip,
+                    value === category && styles.categoryChipActive,
+                  ]}
+                  onPress={() => onChange(category)}
+                >
+                  <Text
+                    style={[
+                      styles.categoryText,
+                      value === category && styles.categoryTextActive,
+                    ]}
+                  >
+                    {category}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="notes"
+        render={({ field: { onChange, onBlur, value }, fieldState }) => (
+          <View style={styles.field}>
+            <Text style={styles.label}>Travel notes</Text>
+            <TextInput
+              style={[
+                styles.input,
+                styles.notesInput,
+                fieldState.error && styles.inputError,
+              ]}
+              placeholder="Write a short note about this trip..."
+              placeholderTextColor={Colors.textSecondary}
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              multiline
+            />
+            {fieldState.error && (
+              <Text style={styles.errorText}>{fieldState.error.message}</Text>
+            )}
+          </View>
+        )}
+      />
+
+      <Pressable
+        style={[styles.addButton, isSubmitting && styles.addButtonDisabled]}
+        onPress={handleSubmit(onSubmit)}
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? (
+          <ActivityIndicator color={Colors.textPrimary} />
+        ) : (
+          <Text style={styles.addButtonText}>Add Trip</Text>
+        )}
       </Pressable>
     </View>
   );
@@ -223,15 +321,61 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
+  field: {
+    marginBottom: 12,
+  },
+  label: {
+    color: Colors.textPrimary,
+    fontSize: 14,
+    fontWeight: "600",
+    marginBottom: 6,
+  },
   input: {
     backgroundColor: Colors.inputBg,
     borderWidth: 1,
     borderColor: Colors.inputBorder,
     borderRadius: 8,
     padding: 12,
-    marginBottom: 12,
     fontSize: 16,
     color: Colors.textPrimary,
+  },
+  notesInput: {
+    height: 90,
+    textAlignVertical: "top",
+  },
+  inputError: {
+    borderColor: Colors.accent,
+    borderWidth: 1.5,
+  },
+  errorText: {
+    color: Colors.accent,
+    fontSize: 12,
+    marginTop: 4,
+  },
+  categoryRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  categoryChip: {
+    borderWidth: 1,
+    borderColor: Colors.inputBorder,
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: Colors.inputBg,
+  },
+  categoryChipActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  categoryText: {
+    color: Colors.textSecondary,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  categoryTextActive: {
+    color: Colors.background,
   },
   addButton: {
     backgroundColor: Colors.accent,
@@ -239,6 +383,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
     marginTop: 8,
+  },
+  addButtonDisabled: {
+    opacity: 0.5,
   },
   addButtonText: {
     color: Colors.textPrimary,
