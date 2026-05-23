@@ -1,17 +1,29 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import React from "react";
 import type { GestureResponderEvent } from "react-native";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Colors } from "@/constants/Colors";
-import type { TripData } from "@/types/trip";
+import type { Trip } from "@/types/trip";
 
 import RatingStars from "./RatingStars";
 
-interface TripCardProps extends TripData {
-  onDelete?: () => void;
+interface TripCardProps {
+  id: string;
+  title: Trip["title"];
+  destination: Trip["destination"];
+  date: Trip["date"];
+  rating: Trip["rating"];
+  imageUri?: Trip["imageUri"];
+  category?: Trip["category"];
+  notes?: Trip["notes"];
+  onPress: (id: string) => void;
+  onDeleteTrip?: (id: string) => void;
 }
 
-export default function TripCard({
+const TripCard = React.memo(function TripCard({
+  id,
   title,
   destination,
   date,
@@ -19,24 +31,36 @@ export default function TripCard({
   imageUri,
   category,
   notes,
-  onDelete,
+  onPress,
+  onDeleteTrip,
 }: TripCardProps) {
   const handleDeletePress = (event: GestureResponderEvent): void => {
     event.stopPropagation();
-    onDelete?.();
+    onDeleteTrip?.(id);
   };
 
   return (
-    <View style={styles.card}>
+    <Pressable
+      style={({ pressed }) => [styles.card, { opacity: pressed ? 0.75 : 1 }]}
+      onPress={() => onPress(id)}
+    >
       {imageUri && (
-        <Image source={{ uri: imageUri }} style={styles.cardImage} />
+        <Image
+          source={{ uri: imageUri }}
+          style={styles.cardImage}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          transition={200}
+        />
       )}
 
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.title} numberOfLines={1}>
+            {title}
+          </Text>
 
-          {onDelete && (
+          {onDeleteTrip && (
             <Pressable onPress={handleDeletePress} style={styles.deleteButton}>
               <Ionicons name="close" size={16} color={Colors.accent} />
             </Pressable>
@@ -49,19 +73,25 @@ export default function TripCard({
           </View>
         )}
 
-        <Text style={styles.meta}>
+        <Text style={styles.meta} numberOfLines={1}>
           {destination} | {date}
         </Text>
 
-        {notes ? <Text style={styles.notes}>{notes}</Text> : null}
+        {notes ? (
+          <Text style={styles.notes} numberOfLines={2}>
+            {notes}
+          </Text>
+        ) : null}
 
         <View style={styles.separator} />
 
         <RatingStars rating={rating} />
       </View>
-    </View>
+    </Pressable>
   );
-}
+});
+
+export default TripCard;
 
 const styles = StyleSheet.create({
   card: {

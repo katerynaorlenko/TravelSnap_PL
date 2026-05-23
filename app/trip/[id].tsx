@@ -1,9 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import {
   ActivityIndicator,
   Alert,
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -45,7 +45,7 @@ export default function TripDetailScreen() {
     return (
       <>
         <Stack.Screen options={{ title: "Trip not found" }} />
-        <View style={styles.screen}>
+        <View style={styles.emptyScreen}>
           <Text style={styles.errorText}>Trip not found.</Text>
           <Pressable style={styles.backButton} onPress={() => router.back()}>
             <Text style={styles.backButtonText}>Back to list</Text>
@@ -89,7 +89,14 @@ export default function TripDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         {imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.heroImage} />
+          <Image
+            source={{ uri: imageUri }}
+            style={styles.heroImage}
+            placeholder={{ blurhash: "LGF5]+Yk^6#M@-5c,1J5@[or[Q6." }}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={300}
+          />
         ) : (
           <View style={styles.placeholder}>
             <Ionicons name="image-outline" size={64} color={Colors.primary} />
@@ -147,6 +154,11 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  emptyScreen: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    padding: 24,
   },
   content: {
     padding: 24,

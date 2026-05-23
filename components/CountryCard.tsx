@@ -1,4 +1,5 @@
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
+import { StyleSheet, Text, View } from "react-native";
 
 import { Colors } from "@/constants/Colors";
 import { RESTCOUNTRIES_BASE_URL } from "@/constants/api";
@@ -20,7 +21,7 @@ export default function CountryCard({ countryName }: CountryCardProps) {
     return <View style={styles.skeleton} />;
   }
 
-  if (error || !data || data.length === 0) {
+  if (error || !data?.[0]) {
     return null;
   }
 
@@ -31,7 +32,13 @@ export default function CountryCard({ countryName }: CountryCardProps) {
 
   return (
     <View style={styles.card}>
-      <Image source={{ uri: country.flags.png }} style={styles.flag} />
+      <Image
+        source={{ uri: country.flags.png }}
+        style={styles.flag}
+        contentFit="cover"
+        cachePolicy="memory-disk"
+        transition={200}
+      />
 
       <View style={styles.info}>
         <Text style={styles.name}>{country.name.common}</Text>

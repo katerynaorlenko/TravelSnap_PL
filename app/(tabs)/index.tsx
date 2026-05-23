@@ -1,9 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
+import { useCallback, useMemo } from "react";
 import {
   ActivityIndicator,
+  FlatList,
   Pressable,
-  ScrollView,
   StyleSheet,
   View,
 } from "react-native";
@@ -15,10 +16,49 @@ import TripStats from "@/components/TripStats";
 import EmptyState from "@/components/ui/EmptyState";
 import { Colors } from "@/constants/Colors";
 import { useTrips } from "@/context/TripContext";
+import type { Trip } from "@/types/trip";
+
+const CARD_HEIGHT = 360;
 
 export default function HomeScreen() {
   const { trips, deleteTrip, loading } = useTrips();
   const router = useRouter();
+
+  const sortedTrips = useMemo(() => {
+    return [...trips].sort((a, b) => b.rating - a.rating);
+  }, [trips]);
+
+  const handleTripPress = useCallback(
+    (id: string) => {
+      router.push(`/trip/${id}`);
+    },
+    [router],
+  );
+
+  const handleDeleteTrip = useCallback(
+    async (id: string) => {
+      await deleteTrip(id);
+    },
+    [deleteTrip],
+  );
+
+  const renderTrip = useCallback(
+    ({ item }: { item: Trip }) => (
+      <TripCard
+        id={item.id}
+        title={item.title}
+        destination={item.destination}
+        date={item.date}
+        rating={item.rating}
+        imageUri={item.imageUri}
+        category={item.category}
+        notes={item.notes}
+        onPress={handleTripPress}
+        onDeleteTrip={handleDeleteTrip}
+      />
+    ),
+    [handleTripPress, handleDeleteTrip],
+  );
 
   if (loading) {
     return (
@@ -32,44 +72,30 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ScreenHeader tripCount={trips.length} />
 
-      <ScrollView
-        contentContainerStyle={styles.content}
-        style={styles.container}
-      >
-        <TripStats trips={trips} />
-
-        {trips.length === 0 ? (
+      <FlatList
+        data={sortedTrips}
+        keyExtractor={(item) => item.id}
+        renderItem={renderTrip}
+        ListHeaderComponent={<TripStats trips={trips} />}
+        ListEmptyComponent={
           <EmptyState
             icon="airplane-outline"
             title="No trips yet"
             subtitle="Add your first trip!"
           />
-        ) : (
-          trips.map((trip) => (
-            <Link
-              key={trip.id}
-              href={{
-                pathname: "/trip/[id]",
-                params: { id: trip.id },
-              }}
-              asChild
-            >
-              <Pressable
-                style={({ pressed }) => [{ opacity: pressed ? 0.75 : 1 }]}
-              >
-                <TripCard
-                  title={trip.title}
-                  destination={trip.destination}
-                  date={trip.date}
-                  rating={trip.rating}
-                  imageUri={trip.imageUri}
-                  onDelete={() => deleteTrip(trip.id)}
-                />
-              </Pressable>
-            </Link>
-          ))
-        )}
-      </ScrollView>
+        }
+        contentContainerStyle={styles.content}
+        style={styles.container}
+        getItemLayout={(_, index) => ({
+          length: CARD_HEIGHT,
+          offset: CARD_HEIGHT * index,
+          index,
+        })}
+        initialNumToRender={10}
+        maxToRenderPerBatch={8}
+        windowSize={5}
+        removeClippedSubviews
+      />
 
       <Pressable style={styles.fab} onPress={() => router.push("/add-trip")}>
         <Ionicons name="add" size={28} color={Colors.background} />
