@@ -1,5 +1,10 @@
 export type TripCategory = "Beach" | "City" | "Mountains" | "Adventure";
 
+export interface TripCoordinates {
+  latitude: number;
+  longitude: number;
+}
+
 export interface TripData {
   title: string;
   destination: string;
@@ -8,6 +13,7 @@ export interface TripData {
   imageUri?: string;
   notes?: string;
   category?: TripCategory;
+  coordinates?: TripCoordinates;
 }
 
 export interface Trip extends TripData {

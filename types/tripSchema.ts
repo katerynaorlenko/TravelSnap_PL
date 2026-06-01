@@ -35,6 +35,13 @@ export const tripSchema = z.object({
     .optional(),
 
   category: z.enum(tripCategories).optional(),
+
+  coordinates: z
+    .object({
+      latitude: z.number(),
+      longitude: z.number(),
+    })
+    .optional(),
 });
 
 export type TripFormData = z.infer<typeof tripSchema>;

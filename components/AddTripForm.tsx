@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
 import { Controller, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
@@ -43,6 +44,7 @@ export default function AddTripForm({ onAdd }: AddTripFormProps) {
       imageUri: undefined,
       notes: "",
       category: "City",
+      coordinates: undefined,
     },
     mode: "onBlur",
   });
@@ -91,7 +93,26 @@ export default function AddTripForm({ onAdd }: AddTripFormProps) {
   };
 
   const onSubmit = async (data: TripFormData) => {
-    await onAdd(data);
+    let coordinates: TripFormData["coordinates"];
+
+    try {
+      const results = await Location.geocodeAsync(data.destination);
+
+      if (results.length > 0) {
+        coordinates = {
+          latitude: results[0].latitude,
+          longitude: results[0].longitude,
+        };
+      }
+    } catch {
+      coordinates = undefined;
+    }
+
+    await onAdd({
+      ...data,
+      coordinates,
+    });
+
     reset();
   };
 
