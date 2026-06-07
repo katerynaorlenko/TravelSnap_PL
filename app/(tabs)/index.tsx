@@ -1,17 +1,12 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useCallback, useMemo } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  View,
-} from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import Animated, { LinearTransition } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import AnimatedFab from "@/components/AnimatedFab";
+import AnimatedTripCard from "@/components/AnimatedTripCard";
 import ScreenHeader from "@/components/ScreenHeader";
-import TripCard from "@/components/TripCard";
 import TripStats from "@/components/TripStats";
 import EmptyState from "@/components/ui/EmptyState";
 import { Colors } from "@/constants/Colors";
@@ -42,19 +37,17 @@ export default function HomeScreen() {
     [deleteTrip],
   );
 
+  const handleAddTrip = useCallback(() => {
+    router.push("/add-trip");
+  }, [router]);
+
   const renderTrip = useCallback(
-    ({ item }: { item: Trip }) => (
-      <TripCard
-        id={item.id}
-        title={item.title}
-        destination={item.destination}
-        date={item.date}
-        rating={item.rating}
-        imageUri={item.imageUri}
-        category={item.category}
-        notes={item.notes}
+    ({ item, index }: { item: Trip; index: number }) => (
+      <AnimatedTripCard
+        trip={item}
+        index={index}
         onPress={handleTripPress}
-        onDeleteTrip={handleDeleteTrip}
+        onDelete={handleDeleteTrip}
       />
     ),
     [handleTripPress, handleDeleteTrip],
@@ -72,7 +65,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ScreenHeader tripCount={trips.length} />
 
-      <FlatList
+      <Animated.FlatList
         data={sortedTrips}
         keyExtractor={(item) => item.id}
         renderItem={renderTrip}
@@ -86,6 +79,7 @@ export default function HomeScreen() {
         }
         contentContainerStyle={styles.content}
         style={styles.container}
+        itemLayoutAnimation={LinearTransition.springify()}
         getItemLayout={(_, index) => ({
           length: CARD_HEIGHT,
           offset: CARD_HEIGHT * index,
@@ -97,9 +91,7 @@ export default function HomeScreen() {
         removeClippedSubviews
       />
 
-      <Pressable style={styles.fab} onPress={() => router.push("/add-trip")}>
-        <Ionicons name="add" size={28} color={Colors.background} />
-      </Pressable>
+      <AnimatedFab onPress={handleAddTrip} />
     </SafeAreaView>
   );
 }
@@ -122,21 +114,5 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     justifyContent: "center",
     alignItems: "center",
-  },
-  fab: {
-    position: "absolute",
-    bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 6,
-    shadowColor: "#000",
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
   },
 });
