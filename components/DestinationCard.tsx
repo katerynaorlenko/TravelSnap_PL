@@ -1,32 +1,16 @@
-import { useMemo } from "react";
 import { ActivityIndicator, Image, StyleSheet, Text, View } from "react-native";
 
 import { Colors } from "@/constants/Colors";
-import { UNSPLASH_ACCESS_KEY, UNSPLASH_BASE_URL } from "@/constants/api";
-import { useFetch } from "@/hooks/useFetch";
-import type { UnsplashResponse } from "@/types/unsplash";
+import { useUnsplashQuery } from "@/hooks/useUnsplashQuery";
 
 interface DestinationCardProps {
   city: string;
 }
 
 export default function DestinationCard({ city }: DestinationCardProps) {
-  const url = `${UNSPLASH_BASE_URL}/search/photos?query=${encodeURIComponent(
-    city,
-  )}&per_page=1`;
+  const { data, isLoading, isError } = useUnsplashQuery(city);
 
-  const init = useMemo(
-    () => ({
-      headers: {
-        Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`,
-      },
-    }),
-    [],
-  );
-
-  const { data, loading, error } = useFetch<UnsplashResponse>(url, init);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <View style={styles.skeleton}>
         <ActivityIndicator color={Colors.primary} />
@@ -34,7 +18,7 @@ export default function DestinationCard({ city }: DestinationCardProps) {
     );
   }
 
-  if (error || !data || !data.results || data.results.length === 0) {
+  if (isError || !data?.results?.length) {
     return null;
   }
 
